@@ -1,0 +1,56 @@
+{
+  "name": "matterbridge-midea",
+  "version": "0.1.16",
+  "description": "Matterbridge plugin for Midea SmartHome air conditioners",
+  "keywords": [
+    "air-conditioner",
+    "matter",
+    "matterbridge",
+    "matterbridge-plugin",
+    "midea",
+    "msmarthome"
+  ],
+  "license": "Apache-2.0",
+  "author": "NeZios",
+  "files": [
+    "dist",
+    "README.md",
+    "matterbridge-midea.config.json",
+    "matterbridge-midea.schema.json"
+  ],
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json --force",
+    "buildProduction": "tsc --build tsconfig.build.json --force",
+    "clean": "rimraf dist *.tsbuildinfo",
+    "dev:link": "npm link matterbridge",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "lint": "oxlint --jsdoc-plugin --vitest-plugin --promise-plugin --node-plugin --import-plugin --deny-warnings .",
+    "lint:fix": "oxlint --fix --jsdoc-plugin --vitest-plugin --promise-plugin --node-plugin --import-plugin .",
+    "runMeBeforePublish": "npm run format:check && npm run lint && npm run clean && npm run build && npm run typecheck && npm run test:coverage",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --build tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.3",
+    "@vitest/coverage-v8": "^4.1.9",
+    "oxfmt": "^0.56.0",
+    "oxlint": "^1.71.0",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.8.3",
+    "vitest": "^4.1.9"
+  },
+  "engines": {
+    "node": ">=20.19.0 <21.0.0 || >=22.13.0 <23.0.0 || >=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
+  }
+}

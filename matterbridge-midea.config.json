@@ -1,0 +1,10 @@
+{
+  "name": "matterbridge-midea",
+  "type": "DynamicPlatform",
+  "debug": false,
+  "unregisterOnShutdown": false,
+  "username": "",
+  "password": "",
+  "polling_interval": 30,
+  "devices": []
+}

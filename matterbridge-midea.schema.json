@@ -1,0 +1,68 @@
+{
+  "title": "Matterbridge Midea",
+  "description": "Matterbridge plugin for Midea SmartHome air conditioners",
+  "type": "object",
+  "properties": {
+    "name": {
+      "title": "Plugin Name",
+      "type": "string",
+      "readOnly": true,
+      "ui:widget": "hidden"
+    },
+    "type": {
+      "title": "Plugin Type",
+      "type": "string",
+      "readOnly": true,
+      "ui:widget": "hidden"
+    },
+    "debug": {
+      "title": "Enable Debug",
+      "type": "boolean",
+      "default": false
+    },
+    "unregisterOnShutdown": {
+      "title": "Unregister On Shutdown",
+      "type": "boolean",
+      "default": false
+    },
+    "username": {
+      "title": "Midea Account Email",
+      "type": "string"
+    },
+    "password": {
+      "title": "Midea Account Password",
+      "type": "string",
+      "ui:widget": "password"
+    },
+    "polling_interval": {
+      "title": "Polling Interval",
+      "type": "number",
+      "default": 30,
+      "minimum": 10
+    },
+    "devices": {
+      "title": "LAN Devices",
+      "type": "array",
+      "default": [],
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "displayName": {
+            "title": "HomeKit Display Name",
+            "description": "Optional name exposed through Matter/HomeKit. If empty, the Midea device name is used.",
+            "type": "string"
+          },
+          "sn": { "type": "string" },
+          "type": { "type": "string", "default": "0xac" },
+          "ip": { "type": "string" },
+          "port": { "type": "number", "default": 6444 },
+          "version": { "type": "number", "default": 3 },
+          "token": { "type": "string", "ui:widget": "password" },
+          "key": { "type": "string", "ui:widget": "password" }
+        }
+      }
+    }
+  }
+}
