@@ -275,6 +275,7 @@ export declare class MideaLanAcDevice {
  * @returns {boolean} `true` when value is an even-length hex string of at least 32 characters.
  */
 export declare function isHexCredential(value: unknown): value is string;
+export declare function isLikelyNetworkError(error: unknown): boolean;
 /**
  * Parse a Midea AC status payload into state.
  *

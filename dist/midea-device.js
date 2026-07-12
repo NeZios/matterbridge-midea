@@ -13,6 +13,8 @@ const AC_TYPE = '0xac';
 const AC_MIN_TEMPERATURE = 16;
 const AC_MAX_TEMPERATURE = 31;
 const AUTO_FAN_SPEED = 102;
+const TCP_CONNECT_TIMEOUT_MS = 2500;
+const LAN_RESPONSE_TIMEOUT_MS = 3500;
 const INTERNAL_AES_KEY = Buffer.from('6a92ef406bad2f0359baad994171ea6d', 'hex');
 const SIGN_SALT = Buffer.from('78686469776a6e6368656b6434643531326368646a783564386534633339344432443753', 'hex');
 const DISCOVERY_PORTS = [6445, 20086];
@@ -631,7 +633,7 @@ export class MideaLanAcDevice {
                 await this.authenticate(socket);
             const packet = buildLanPacket(Number(this.config.id), command);
             socket.write(this.config.version === 3 ? this.localSecurity.encode8370(packet, 0x06) : packet);
-            const response = await readMideaFrame(socket, 5000);
+            const response = await readMideaFrame(socket, LAN_RESPONSE_TIMEOUT_MS);
             const messages = this.config.version === 3 ? this.localSecurity.decode8370(response) : splitV2Messages(response);
             for (const message of messages) {
                 const decrypted = decryptLanPacket(message);
@@ -647,7 +649,7 @@ export class MideaLanAcDevice {
     }
     async authenticate(socket) {
         socket.write(this.localSecurity.encode8370(Buffer.from(this.config.token, 'hex'), 0x00));
-        const response = await readMideaFrame(socket, 5000);
+        const response = await readMideaFrame(socket, LAN_RESPONSE_TIMEOUT_MS);
         if (isMideaErrorResponse(response))
             throw new Error('Midea v3 handshake returned ERROR');
         if (response.length < 72)
@@ -845,10 +847,11 @@ function broadcastAddresses() {
 function connectTcp(ip, port) {
     return new Promise((resolve, reject) => {
         const socket = net.createConnection({ host: ip, port });
+        socket.setNoDelay(true);
         const timer = setTimeout(() => {
             socket.destroy();
             reject(new Error(`Timed out connecting to ${ip}:${port}`));
-        }, 5000);
+        }, TCP_CONNECT_TIMEOUT_MS);
         socket.once('connect', () => {
             clearTimeout(timer);
             resolve(socket);
@@ -893,11 +896,21 @@ function readMideaFrame(socket, timeoutMs) {
         };
         const onEnd = () => {
             cleanup();
-            resolve(buffer);
+            if (buffer.length > 0) {
+                resolve(buffer);
+            }
+            else {
+                reject(new Error('Midea LAN connection ended before a response was received'));
+            }
         };
         const onClose = () => {
             cleanup();
-            resolve(buffer);
+            if (buffer.length > 0) {
+                resolve(buffer);
+            }
+            else {
+                reject(new Error('Midea LAN connection closed before a response was received'));
+            }
         };
         const timer = setTimeout(() => {
             cleanup();
@@ -1017,6 +1030,10 @@ function stringifyRecord(data) {
  */
 export function isHexCredential(value) {
     return typeof value === 'string' && value.length >= 32 && value.length % 2 === 0 && /^[0-9a-f]+$/i.test(value);
+}
+export function isLikelyNetworkError(error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return /timed out|timeout|ECONN|EHOST|ENET|EPIPE|closed before|ended before|socket hang up/i.test(message);
 }
 function aesCbcEncrypt(data, key) {
     const cipher = createCipheriv('aes-256-cbc', key, Buffer.alloc(16));

@@ -93,6 +93,7 @@ export declare class MideaPlatform extends MatterbridgeDynamicPlatform {
     private deferStateSync;
     private startPolling;
     private pollAll;
+    private setRegisteredReachable;
     private syncRegisteredState;
     private updateEndpointState;
     private updateFanEndpointState;

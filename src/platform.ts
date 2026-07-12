@@ -11,9 +11,18 @@ import {
 } from 'matterbridge';
 import type { AnsiLogger, LogLevel } from 'matterbridge/logger';
 import type { ActionContext } from 'matterbridge/matter';
-import { FanControl, OnOff, Thermostat, ThermostatUserInterfaceConfiguration } from 'matterbridge/matter/clusters';
+import { BridgedDeviceBasicInformation, FanControl, OnOff, Thermostat, ThermostatUserInterfaceConfiguration } from 'matterbridge/matter/clusters';
 
-import { MideaCloudClient, MideaLanDiscovery, MideaMode, type MideaAcState, type MideaCredentialCandidate, type MideaDeviceConfig, MideaLanAcDevice } from './midea-device.js';
+import {
+  isLikelyNetworkError,
+  MideaCloudClient,
+  MideaLanDiscovery,
+  MideaMode,
+  type MideaAcState,
+  type MideaCredentialCandidate,
+  type MideaDeviceConfig,
+  MideaLanAcDevice,
+} from './midea-device.js';
 
 /**
  * Describe the plugin configuration consumed by the Midea platform.
@@ -39,11 +48,12 @@ type RegisteredAc = {
   ecoEndpoint: MatterbridgeEndpoint;
   device: MideaLanAcDevice;
   lastSyncedState?: MideaAcState;
+  reachable?: boolean;
 };
 
 const MANUFACTURER = 'Midea';
 const PRODUCT = 'Midea SmartHome Air Conditioner';
-const PLUGIN_VERSION = '0.1.16';
+const PLUGIN_VERSION = '0.1.17';
 const MIN_SETPOINT = 16;
 const MAX_SETPOINT = 31;
 
@@ -255,7 +265,7 @@ export class MideaPlatform extends MatterbridgeDynamicPlatform {
           await this.registerDevice(fanAutoEndpoint);
           await this.registerDevice(swingVerticalEndpoint);
           await this.registerDevice(ecoEndpoint);
-          this.registeredAcs.set(deviceConfig.id, { config: deviceConfig, endpoint, fanEndpoint, fanAutoEndpoint, swingVerticalEndpoint, ecoEndpoint, device });
+          this.registeredAcs.set(deviceConfig.id, { config: deviceConfig, endpoint, fanEndpoint, fanAutoEndpoint, swingVerticalEndpoint, ecoEndpoint, device, reachable: true });
           if (initialState) {
             const registered = this.registeredAcs.get(deviceConfig.id);
             if (registered) await this.syncRegisteredState(registered, initialState);
@@ -554,8 +564,13 @@ export class MideaPlatform extends MatterbridgeDynamicPlatform {
     try {
       const state = await command();
       const registered = this.registeredAcs.get(device.id);
-      if (registered) this.deferStateSync(registered, state);
+      if (registered) {
+        void this.setRegisteredReachable(registered, true);
+        this.deferStateSync(registered, state);
+      }
     } catch (error) {
+      const registered = this.registeredAcs.get(device.id);
+      if (registered && isLikelyNetworkError(error)) void this.setRegisteredReachable(registered, false);
       this.log.error(`[${device.name}] LAN command failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -591,14 +606,41 @@ export class MideaPlatform extends MatterbridgeDynamicPlatform {
         try {
           const state = await device.refresh();
           const registered = this.registeredAcs.get(config.id);
-          if (registered) await this.syncRegisteredState(registered, state);
+          if (registered) {
+            await this.setRegisteredReachable(registered, true);
+            await this.syncRegisteredState(registered, state);
+          }
         } catch (error) {
-          this.log.warn(`[${config.name}] Poll failed: ${error instanceof Error ? error.message : String(error)}`);
+          const registered = this.registeredAcs.get(config.id);
+          if (registered && isLikelyNetworkError(error)) await this.setRegisteredReachable(registered, false);
+          if (registered?.reachable === false) {
+            this.log.debug(`[${config.name}] Poll skipped while unreachable: ${error instanceof Error ? error.message : String(error)}`);
+          } else {
+            this.log.warn(`[${config.name}] Poll failed: ${error instanceof Error ? error.message : String(error)}`);
+          }
         }
       }
     } finally {
       this.pollInProgress = false;
     }
+  }
+
+  private async setRegisteredReachable(registered: RegisteredAc, reachable: boolean): Promise<void> {
+    if (registered.reachable === reachable) return;
+    registered.reachable = reachable;
+
+    const endpoints = [registered.endpoint, registered.fanEndpoint, registered.fanAutoEndpoint, registered.swingVerticalEndpoint, registered.ecoEndpoint];
+    await Promise.all(
+      endpoints.map(async (endpoint) => {
+        try {
+          await endpoint.setAttribute(BridgedDeviceBasicInformation, 'reachable', reachable, this.log);
+        } catch (error) {
+          this.log.debug(`[${registered.config.name}] Failed to update reachable=${reachable}: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      }),
+    );
+
+    this.log[reachable ? 'info' : 'warn'](`[${registered.config.name}] Midea LAN device is ${reachable ? 'reachable again' : 'unreachable'}`);
   }
 
   private async syncRegisteredState(registered: RegisteredAc, state: MideaAcState): Promise<void> {

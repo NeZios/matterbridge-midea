@@ -1,6 +1,6 @@
 {
   "name": "matterbridge-midea",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "description": "Matterbridge plugin for Midea SmartHome air conditioners",
   "keywords": [
     "air-conditioner",

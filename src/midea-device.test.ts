@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isHexCredential, MideaMode, type MideaAcState, parseAcState, parseTemperature } from './midea-device.js';
+import { isHexCredential, isLikelyNetworkError, MideaMode, type MideaAcState, parseAcState, parseTemperature } from './midea-device.js';
 
 const previousState: MideaAcState = {
   power: false,
@@ -61,5 +61,12 @@ describe('Midea protocol helpers', () => {
     const payload = createStatusPayload();
     payload[2] = (7 << 5) | 8;
     expect(parseAcState(payload, previousState).mode).toBe(MideaMode.Auto);
+  });
+
+  it('classifies transient LAN network failures', () => {
+    expect(isLikelyNetworkError(new Error('Timed out connecting to 192.168.1.16:6444'))).toBe(true);
+    expect(isLikelyNetworkError(new Error('connect ECONNREFUSED 192.168.1.16:6444'))).toBe(true);
+    expect(isLikelyNetworkError(new Error('Midea LAN connection closed before a response was received'))).toBe(true);
+    expect(isLikelyNetworkError(new Error('Midea v3 authentication signature mismatch'))).toBe(false);
   });
 });
