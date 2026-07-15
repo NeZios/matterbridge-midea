@@ -1,5 +1,7 @@
 node_modules/
 coverage/
+midea-extract/
+.DS_Store
 *.tgz
 *.tsbuildinfo
 .env

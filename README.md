@@ -4,6 +4,12 @@ Matterbridge dynamic platform plugin for Midea SmartHome air conditioners with L
 
 This plugin targets Midea AC devices exposed through the Midea SmartHome cloud, including the Midea Portasplit 3.5kW `MMCS-12HRN8-QRD0` (`0xAC` appliance type).
 
+## Project Status
+
+This plugin is community-maintained and was developed with AI assistance. It works in the maintainer's own setup, but Midea devices and cloud APIs vary by region, account type, firmware, and app backend.
+
+Treat `0.x` releases as experimental. Please open issues with Matterbridge version, Node.js version, plugin version, Midea app/backend, region, AC model, sanitized logs, and sanitized config.
+
 ## Features
 
 - Logs in to the Midea SmartHome cloud once to bootstrap device metadata and LAN credentials
@@ -93,3 +99,9 @@ Midea has disabled some token/key retrieval APIs for certain app/cloud combinati
 If Matterbridge logs `ENOENT ... /usr/local/lib/node_modules/matterbridge-midea/package.json`, the global npm installation is incomplete or corrupted before the plugin code is loaded. Remove the plugin from Matterbridge, restart Matterbridge, then upload and install a freshly packed `.tgz`.
 
 The plugin only publishes Matter attribute updates when the LAN state changes, keeping regular polling quiet and reducing controller transaction load.
+
+## Acknowledgements
+
+This Matterbridge plugin was inspired by community work around Midea LAN/cloud integrations, especially [homebridge-midea-platform](https://github.com/kovapatrik/homebridge-midea-platform).
+
+This project is not affiliated with Midea, Homebridge, Matterbridge, or that project.
