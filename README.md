@@ -35,6 +35,21 @@ Treat `0.x` releases as experimental. Please open issues with Matterbridge versi
 
 On first start, the plugin uses `username` and `password` to discover AC devices and fetch their LAN `token`/`key`. It tries the NetHome Plus token API first, then falls back to the Midea SmartHome cloud API used by newer integrations. It also performs LAN discovery to find the device IP and port, and can bootstrap from the LAN-discovered device ID when the cloud appliance list is empty or incomplete.
 
+## MSmartHome App Requirement
+
+The MSmartHome app is not required to extract the LAN `token` and `key` manually. The plugin reproduces the relevant cloud flow directly:
+
+1. Signs in with the MSmartHome account.
+2. Retrieves the account appliances and their `applianceId`.
+3. Requests `token` and `key` candidates using `applianceCodes`.
+4. Validates each candidate against the appliance over the local network.
+5. Saves the working LAN credentials.
+6. Removes the cloud username and password from the Matterbridge configuration.
+
+The app is generally needed only for the initial appliance setup: joining the AC to Wi-Fi and linking it to the Midea account. Once the appliance is linked to the account and reachable on the LAN, the plugin can bootstrap itself.
+
+The first bootstrap still requires temporary cloud access to obtain the LAN credentials. Subsequent control is entirely local.
+
 After bootstrap, Matterbridge saves a `devices` entry like:
 
 ```json

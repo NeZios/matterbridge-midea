@@ -3,7 +3,7 @@ import { BridgedDeviceBasicInformation, FanControl, OnOff, Thermostat, Thermosta
 import { isLikelyNetworkError, MideaCloudClient, MideaLanDiscovery, MideaMode, MideaLanAcDevice, } from './midea-device.js';
 const MANUFACTURER = 'Midea';
 const PRODUCT = 'Midea SmartHome Air Conditioner';
-const PLUGIN_VERSION = '0.1.18';
+const PLUGIN_VERSION = '0.1.19';
 const MIN_SETPOINT = 16;
 const MAX_SETPOINT = 31;
 /**
