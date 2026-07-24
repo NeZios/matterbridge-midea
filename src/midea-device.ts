@@ -274,6 +274,7 @@ export class MideaCloudClient {
   private async getTokenKeyByUdpId(applianceId: string, udpId: string): Promise<MideaCredentialCandidate> {
     const response = await this.apiRequest('/v1/iot/secure/getToken', {
       udpid: udpId,
+      // Required by MSmartHome getToken; documented at github.com/cauan/midea-local-tokens/blob/main/WRITEUP.md.
       applianceCodes: applianceId,
     });
     return { ...parseTokenKeyResponse(response, udpId), source: `MSmartHome/${udpId.slice(0, 8)}` };

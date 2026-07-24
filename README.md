@@ -50,6 +50,8 @@ The app is generally needed only for the initial appliance setup: joining the AC
 
 The first bootstrap still requires temporary cloud access to obtain the LAN credentials. Subsequent control is entirely local.
 
+The `applianceCodes` requirement was identified and documented by Cauan in [One missing field: how I got my Midea ACs working locally in Home Assistant](https://github.com/cauan/midea-local-tokens/blob/main/WRITEUP.md).
+
 After bootstrap, Matterbridge saves a `devices` entry like:
 
 ```json
@@ -120,4 +122,6 @@ The plugin only publishes Matter attribute updates when the LAN state changes, k
 
 This Matterbridge plugin was inspired by community work around Midea LAN/cloud integrations, especially [homebridge-midea-platform](https://github.com/kovapatrik/homebridge-midea-platform).
 
-This project is not affiliated with Midea, Homebridge, Matterbridge, or that project.
+The MSmartHome `applianceCodes` token-request fix is based on the reverse-engineering research published by Cauan in [midea-local-tokens](https://github.com/cauan/midea-local-tokens) and its [technical write-up](https://github.com/cauan/midea-local-tokens/blob/main/WRITEUP.md).
+
+This project is not affiliated with Midea, Homebridge, Matterbridge, or those projects.
