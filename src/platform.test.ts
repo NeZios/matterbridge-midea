@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
+import { MideaMode, type MideaAcState } from './midea-device.js';
 import {
   celsiusToMatterSetpoint,
   celsiusToMatterTemperature,
+  isSwingVerticalActive,
   isValidMideaDeviceConfig,
   matterFanPercentToMidea,
   matterTemperatureToCelsius,
@@ -51,6 +53,22 @@ describe('platform helpers', () => {
   it('converts Midea manual and auto fan speed values to Matter percentages', () => {
     expect(mideaFanSpeedToPercent(66)).toBe(66);
     expect(mideaFanSpeedToPercent(102)).toBe(0);
+  });
+
+  it('exposes vertical swing only while the AC is powered', () => {
+    const state: MideaAcState = {
+      power: false,
+      mode: MideaMode.Cool,
+      targetTemperature: 24,
+      currentTemperature: 23,
+      fanSpeed: 66,
+      swingVertical: true,
+      ecoMode: false,
+    };
+
+    expect(isSwingVerticalActive(state)).toBe(false);
+    expect(isSwingVerticalActive({ ...state, power: true })).toBe(true);
+    expect(isSwingVerticalActive({ ...state, power: true, swingVertical: false })).toBe(false);
   });
 
   it('validates Midea device config entries from external config', () => {

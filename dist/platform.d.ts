@@ -1,6 +1,6 @@
 import { type BasePlatformConfig, MatterbridgeDynamicPlatform, type PlatformConfig, type PlatformMatterbridge } from 'matterbridge';
 import type { AnsiLogger, LogLevel } from 'matterbridge/logger';
-import { type MideaDeviceConfig } from './midea-device.js';
+import { type MideaAcState, type MideaDeviceConfig } from './midea-device.js';
 /**
  * Describe the plugin configuration consumed by the Midea platform.
  *
@@ -121,6 +121,16 @@ export declare function parseMideaDeviceConfigs(value: unknown): MideaDeviceConf
  * @returns {boolean} `true` when the value has the required Midea device config shape.
  */
 export declare function isValidMideaDeviceConfig(value: unknown): value is MideaDeviceConfig;
+/**
+ * Return whether the vertical louvers are actively swinging.
+ *
+ * Midea retains the swing preference while the AC is off. Matter/HomeKit should
+ * expose the effective movement state instead of that dormant preference.
+ *
+ * @param {MideaAcState} state Current Midea AC state.
+ * @returns {boolean} `true` only while the AC is powered and swing is enabled.
+ */
+export declare function isSwingVerticalActive(state: MideaAcState): boolean;
 /**
  * Convert Celsius to Matter temperature units.
  *

@@ -568,11 +568,14 @@ export class MideaLanAcDevice {
     /**
      * Enable or disable vertical swing.
      *
+     * Enabling swing powers the AC on because the Matter switch represents active
+     * louver movement. Disabling swing does not change the current power state.
+     *
      * @param {boolean} swingVertical Whether vertical swing should be enabled.
      * @returns {Promise<MideaAcState>} AC state after the command.
      */
     async setSwingVertical(swingVertical) {
-        return this.apply({ swingVertical });
+        return this.apply(swingVertical ? { swingVertical, power: true } : { swingVertical });
     }
     /**
      * Enable or disable eco mode.

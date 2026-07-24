@@ -53,7 +53,7 @@ type RegisteredAc = {
 
 const MANUFACTURER = 'Midea';
 const PRODUCT = 'Midea SmartHome Air Conditioner';
-const PLUGIN_VERSION = '0.1.17';
+const PLUGIN_VERSION = '0.1.18';
 const MIN_SETPOINT = 16;
 const MAX_SETPOINT = 31;
 
@@ -253,7 +253,7 @@ export class MideaPlatform extends MatterbridgeDynamicPlatform {
         this.bindFanEndpoint(fanEndpoint, device);
         const fanAutoEndpoint = await this.createSwitchEndpoint(deviceConfig, 'Fan Auto', 'fan-auto', initialState?.fanSpeed === 102);
         this.bindSwitchEndpoint(fanAutoEndpoint, device, (value) => device.setFanAuto(value));
-        const swingVerticalEndpoint = await this.createSwitchEndpoint(deviceConfig, 'Swing Vertical', 'swing-vertical', initialState?.swingVertical ?? false);
+        const swingVerticalEndpoint = await this.createSwitchEndpoint(deviceConfig, 'Swing Vertical', 'swing-vertical', initialState ? isSwingVerticalActive(initialState) : false);
         this.bindSwitchEndpoint(swingVerticalEndpoint, device, (value) => device.setSwingVertical(value));
         const ecoEndpoint = await this.createSwitchEndpoint(deviceConfig, 'Eco', 'eco', initialState?.ecoMode ?? false);
         this.bindSwitchEndpoint(ecoEndpoint, device, (value) => device.setEcoMode(value));
@@ -706,7 +706,9 @@ export class MideaPlatform extends MatterbridgeDynamicPlatform {
     this.updatingFromCloud = true;
     try {
       if (!previous || previous.fanSpeed !== state.fanSpeed) await fanAutoEndpoint.setAttribute(OnOff, 'onOff', state.fanSpeed === 102, this.log);
-      if (!previous || previous.swingVertical !== state.swingVertical) await swingVerticalEndpoint.setAttribute(OnOff, 'onOff', state.swingVertical, this.log);
+      if (!previous || isSwingVerticalActive(previous) !== isSwingVerticalActive(state)) {
+        await swingVerticalEndpoint.setAttribute(OnOff, 'onOff', isSwingVerticalActive(state), this.log);
+      }
       if (!previous || previous.ecoMode !== state.ecoMode) await ecoEndpoint.setAttribute(OnOff, 'onOff', state.ecoMode, this.log);
     } finally {
       this.updatingFromCloud = false;
@@ -808,6 +810,19 @@ function sameAcState(left: MideaAcState, right: MideaAcState): boolean {
 
 function cloneAcState(state: MideaAcState): MideaAcState {
   return { ...state };
+}
+
+/**
+ * Return whether the vertical louvers are actively swinging.
+ *
+ * Midea retains the swing preference while the AC is off. Matter/HomeKit should
+ * expose the effective movement state instead of that dormant preference.
+ *
+ * @param {MideaAcState} state Current Midea AC state.
+ * @returns {boolean} `true` only while the AC is powered and swing is enabled.
+ */
+export function isSwingVerticalActive(state: MideaAcState): boolean {
+  return state.power && state.swingVertical;
 }
 
 function hasLanCredentials(device: MideaDeviceConfig): boolean {

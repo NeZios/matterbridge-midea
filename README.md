@@ -89,6 +89,7 @@ matterbridge -add .
 - The dedicated Fan endpoint controls the same AC fan speed. It exists because some Matter controllers expose embedded Room Air Conditioner fan controls poorly.
 - Target setpoints are rounded to whole Celsius degrees before being sent to the AC. Some controllers, including HomeKit, may still display a 0.5 degree UI step even though the plugin sends whole-degree commands.
 - The `Fan Auto`, `Swing Vertical`, and `Eco` endpoints map to Midea LAN toggles when supported by the AC firmware.
+- `Swing Vertical` reports off while the AC is powered off, even if Midea retains the swing preference internally. Turning the switch on powers the AC on; turning it off only disables swing.
 - Eco preserves the previous manual fan speed when possible and also recognizes Midea's `power_saving` status bit used by some AC firmware.
 - Matter attribute updates are synchronized after command handlers return, avoiding controller transaction stalls on fast repeated HomeKit actions.
 
