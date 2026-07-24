@@ -171,7 +171,7 @@ export class MideaCloudClient {
         }
         for (const udpId of udpIds) {
             try {
-                candidates.push(await this.getTokenKeyByUdpId(udpId));
+                candidates.push(await this.getTokenKeyByUdpId(applianceId, udpId));
             }
             catch (error) {
                 errors.push(`MSmartHome ${udpId.slice(0, 8)}: ${error instanceof Error ? error.message : String(error)}`);
@@ -184,8 +184,11 @@ export class MideaCloudClient {
             return [...unique.values()];
         throw new Error(`No token/key found for appliance ${applianceId}. Attempts: ${errors.join(' | ')}`);
     }
-    async getTokenKeyByUdpId(udpId) {
-        const response = await this.apiRequest('/v1/iot/secure/getToken', { udpid: udpId });
+    async getTokenKeyByUdpId(applianceId, udpId) {
+        const response = await this.apiRequest('/v1/iot/secure/getToken', {
+            udpid: udpId,
+            applianceCodes: applianceId,
+        });
         return { ...parseTokenKeyResponse(response, udpId), source: `MSmartHome/${udpId.slice(0, 8)}` };
     }
     async resolveRegion() {
