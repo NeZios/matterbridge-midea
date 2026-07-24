@@ -10,8 +10,16 @@
     "midea",
     "msmarthome"
   ],
+  "homepage": "https://github.com/NeZios/matterbridge-midea#readme",
+  "bugs": {
+    "url": "https://github.com/NeZios/matterbridge-midea/issues"
+  },
   "license": "Apache-2.0",
   "author": "NeZios",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NeZios/matterbridge-midea.git"
+  },
   "files": [
     "dist",
     "README.md",
